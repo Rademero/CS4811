@@ -19,6 +19,7 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -61,25 +62,23 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
+
 class Node:
     """
-    Node class for use in search algorithms
-
+    Node class for use in search algorithms. Node should contain a list of actions to get to current node
+    The current state & the cost nessicary to make it there. The cosst will only be useful for usc & A* searches
     __author__ npromero
     """
+
     def __init__(self, state):
         self.actionList = []
         self.state = state
         self.cost = 0
 
+    # Getters
+
     def getState(self):
         return self.state
-
-    def setActionList(self, actions):
-        self.actionList = actions[:]
-
-    def addAction(self, action):
-        self.actionList.append(action)
 
     def getActions(self):
         return self.actionList
@@ -90,22 +89,29 @@ class Node:
     def getCost(self):
         return self.cost
 
+    # Setters
+
+    def setActionList(self, actions):
+        self.actionList = actions[:]
+
     def setCost(self, cost):
         self.cost = cost
-
-def makeNode(state):
-    return Node(state)
-
+    # Helper Methods
+"""
+Expand method to help get a list of children. The method gets all of the legal children of a node given the node & the 
+problem. The method then supplies the necessary information for each child
+"""
 def expand(node, problem):
-    parentNode = node
+    parent = node
     childList = []
-    successors = problem.getSuccessors(node.getState())
+    successors = problem.getSuccessors(node.getState())  # Getting children
     for i in range(len(successors)):
         successor = successors[i]
-        child = makeNode(successor[0])
-        child.setActionList(parentNode.getActions())
-        child.addAction(successor[1])
-        child.setCost(parentNode.getCost() + successor[2])
+        # Setting necessary information
+        child = Node(successor[0])
+        child.setActionList(parent.getActions())
+        child.actionList.append(successor[1])
+        child.setCost(parent.getCost() + successor[2])
         childList.append(child)
 
     return childList
@@ -119,7 +125,8 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
+
 
 def depthFirstSearch(problem):
     """
@@ -136,9 +143,9 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    closed = set()
-    fringe = util.Stack()
-    fringe.push(makeNode(problem.getStartState()))
+    closed = set()  # A closed set is needed for graph search
+    fringe = util.Stack()  # For the basic searches this should be the biggest change, Stack for FILO design
+    fringe.push(Node(problem.getStartState()))
 
     while True:
         if fringe.isEmpty():
@@ -148,18 +155,19 @@ def depthFirstSearch(problem):
 
         if problem.isGoalState(node.getState()):
             return node.getActions()
-        if node.getState() not in closed:
+        if node.getState() not in closed:  # Making sure to not keep looping though the same nodes.
             closed.add(node.getState())
-            for node in expand(node, problem):
-                fringe.push(node)
+            for node in expand(node, problem):  # Getting successors for the fringe
+                fringe.push(node)  # adding successor to fringe
+
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     closed = set()
-    fringe = util.PriorityQueue()
-    node = makeNode(problem.getStartState())
-    fringe.push(node, node.getDepth())
+    fringe = util.PriorityQueue()  # Queue is useful for FIFO design
+    node = Node(problem.getStartState())
+    fringe.push(node, node.getDepth())  # tracking depth to ensure the shallowest depth is expanded first
 
     while True:
         if fringe.isEmpty():
@@ -174,10 +182,12 @@ def breadthFirstSearch(problem):
             for node in expand(node, problem):
                 fringe.push(node, node.getDepth())
 
+
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -185,6 +195,7 @@ def nullHeuristic(state, problem=None):
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
     return 0
+
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
