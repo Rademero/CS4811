@@ -96,7 +96,9 @@ class Node:
 
     def setCost(self, cost):
         self.cost = cost
+
     # Helper Methods
+
 """
 Expand method to help get a list of children. The method gets all of the legal children of a node given the node & the 
 problem. The method then supplies the necessary information for each child
@@ -184,9 +186,27 @@ def breadthFirstSearch(problem):
 
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
+    """
+    Search the node of least total cost first.
+    __author__ ajdenofr
+    """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    closed = set()
+    fringe = util.PriorityQueue()
+    # Set start state
+    fringe.push(Node(problem.getStartState()), 0)
+    while True:
+        # Nothing to do? Return no actions
+        if fringe.isEmpty(): return []
+        node = fringe.pop()
+        # If at goal, return actions to get there
+        if problem.isGoalState(node.getState()): return node.getActions()
+        # New state encountered 
+        if node.getState() not in closed:
+            closed.add(node.getState())
+            for node in expand(node, problem):
+                # Add possible neighbor nodes and their costs for new state
+                fringe.push(node, node.getCost())
 
 
 def nullHeuristic(state, problem=None):
@@ -200,7 +220,23 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    closed = set()
+    start = problem.getStartState()
+    fringe = util.PriorityQueue()
+    # Set start state, zero cost but include heuristic
+    fringe.push(Node(start), heuristic(start, problem))
+    while True:
+        # Nothing to do? Return no actions
+        if fringe.isEmpty(): return []
+        node = fringe.pop()
+        # If at goal, return actions to get there
+        if problem.isGoalState(node.getState()): return node.getActions()
+        # New state encountered 
+        if node.getState() not in closed:
+            closed.add(node.getState())
+            for node in expand(node, problem):
+                # Add possible neighbor nodes and their costs for new state + heuristic
+                fringe.push(node, node.getCost() + heuristic(node.getState(), problem))
 
 
 # Abbreviations
