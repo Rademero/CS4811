@@ -66,7 +66,7 @@ class SearchProblem:
 class Node:
     """
     Node class for use in search algorithms. Node should contain a list of actions to get to current node
-    The current state & the cost nessicary to make it there. The cosst will only be useful for usc & A* searches
+    The current state & the cost necessary to make it there. The cost will only be useful for usc & A* searches
     __author__ npromero
     """
 

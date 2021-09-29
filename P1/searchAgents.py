@@ -378,7 +378,36 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    dist = 0
+    cornersLeft = list(state[1])
+    agent = state[0]
+    cList = []
+    total = 0
+
+    if len(cornersLeft) > 0:
+        for i in range(len(cornersLeft)):
+            corner = cornersLeft[i]
+            cList.append(abs(agent[0] - corner[0]) + abs(agent[1] - corner[1]))
+        nearest = min(cList)
+        minI = cList.index(nearest)
+        closest = cornersLeft[minI]
+
+        cornersLeft.remove(closest)
+        while len(cornersLeft) > 0:
+            distList = []
+            xy1 = closest
+            for i in range(len(cornersLeft)):
+                xy2 = cornersLeft[i]
+                distList.append(abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1]))
+            closest2 = min(distList)
+            minI = distList.index(closest2)
+            closest = cornersLeft[minI]
+            cornersLeft.remove(closest)
+
+            total = total + closest2
+        dist = nearest + total
+
+    return dist
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -472,7 +501,32 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    max = -1
+    maxdot = position
+    for food in foodGrid.asList():
+        dist = abs(position[0] - food[0]) + abs(position[1] - food[1])
+        if (dist > max):
+            max = dist
+            maxdot = food
+    d = position[0] - maxdot[0]
+
+    foodCount = 0
+    for food in foodGrid.asList():
+        if d > 0:
+            if (position[0] - food[0]) < 0:
+                foodCount += 1
+        elif d < 0:
+            if (position[0] - food[0]) > 0:
+                foodCount += 1
+        else:
+            if (position[0] - food[0]) != 0:
+                foodCount += 1
+
+    if max < 0:
+        max = 0
+
+    return max + foodCount
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
