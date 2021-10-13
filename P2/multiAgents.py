@@ -18,6 +18,7 @@ import random, util
 
 from game import Agent
 
+
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -27,7 +28,6 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
-
 
     def getAction(self, gameState):
         """
@@ -45,7 +45,7 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
 
         "Add more of your code here if you want to"
 
@@ -76,6 +76,7 @@ class ReflexAgent(Agent):
         "*** YOUR CODE HERE ***"
         return successorGameState.getScore()
 
+
 def scoreEvaluationFunction(currentGameState):
     """
     This default evaluation function just returns the score of the state.
@@ -85,6 +86,7 @@ def scoreEvaluationFunction(currentGameState):
     (not reflex agents).
     """
     return currentGameState.getScore()
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -102,9 +104,10 @@ class MultiAgentSearchAgent(Agent):
     """
 
     def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = 0 # Pacman is always agent index 0
+        self.index = 0  # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -135,7 +138,46 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        val = float("-inf")
+        action = []
+        agent = 0
+        actions = gameState.getLegalActions(agent)
+        successors = [(action, gameState.generateSuccessor(agent, action)) for action in actions]
+        for successor in successors:
+            tmp = minimax(1, range(gameState.getNumAgents()), successor[1], self.depth, self.evaluationFunction)
+
+            if tmp > val:
+                val = tmp
+                action = successor[0]
+        return action
+
+
+def minimax(agent, agentList, state, depth, evalFunc):
+    if state.isLose() is True or depth <= 0 or state.isWin() is True:
+        return evalFunc(state)
+
+    if agent == 0:
+        val = float("-inf")
+    else:
+        val = float("inf")
+
+    actions = state.getLegalActions(agent)
+    successors = [state.generateSuccessor(agent, action) for action in actions]
+    for j in range(len(successors)):
+        successor = successors[j];
+
+        if agent == 0:
+
+            val = max(val, minimax(agentList[agent + 1], agentList, successor, depth, evalFunc))
+        elif agent == agentList[-1]:
+
+            val = min(val, minimax(agentList[0], agentList, successor, depth - 1, evalFunc))
+        else:
+
+            val = min(val, minimax(agentList[agent + 1], agentList, successor, depth, evalFunc))
+
+    return val
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -147,7 +189,60 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.max(float("-inf"), float("inf"), gameState, gameState.getLegalActions(0), 0, 0)[0]
+
+    def max(self, alpha, beta, gameState, actions, depth, agentIndex):
+        agentIndex = agentIndex + 1
+        tmpMax = ("max", float("-inf"))
+
+        # checking if agent index is out of bounds
+        if agentIndex >= gameState.getNumAgents():
+            agentIndex = 0
+            # getting max
+        for action in actions:
+            tmpSuc = (
+                action, self.alphaBeta(depth + 1, gameState.generateSuccessor(agentIndex - 1, action), agentIndex,
+                                       alpha, beta))
+            if tmpMax[1] <= tmpSuc[1]:
+                tmpMax = tmpSuc
+            if alpha < tmpMax[1]:
+                alpha = tmpMax[1]
+            if tmpMax[1] > beta:
+                return tmpMax
+
+        return tmpMax
+
+    def min(self, alpha, beta, gameState, actions, depth, agentIndex):
+        tmpMin = ("min", float("inf"))
+        agentIndex = agentIndex + 1
+        # checking if agent index is out of bounds
+        if agentIndex >= gameState.getNumAgents():
+            agentIndex = 0
+
+        # getting min
+        for action in actions:
+            tempSuc = (action,
+                       self.alphaBeta(depth + 1, gameState.generateSuccessor(agentIndex - 1, action), agentIndex,
+                                      alpha,
+                                      beta))
+            if tmpMin[1] >= tempSuc[1]:
+                tmpMin = tempSuc
+            if beta > tmpMin[1]:
+                beta = tmpMin[1]
+            if tmpMin[1] < alpha:
+                return tmpMin
+
+        return tmpMin
+
+    def alphaBeta(self, depth, gameState, agentIndex, alpha, beta):
+        if gameState.isLose() or gameState.isWin() or (
+                depth >= self.depth * gameState.getNumAgents()):
+            return self.evaluationFunction(gameState)
+        if agentIndex == 0:
+            return self.max(alpha, beta, gameState, gameState.getLegalActions(0), depth, 0)[1]
+        else:
+            return self.min(alpha, beta, gameState, gameState.getLegalActions(agentIndex), depth, agentIndex)[1]
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -164,6 +259,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
+
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
@@ -173,6 +269,7 @@ def betterEvaluationFunction(currentGameState):
     """
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 # Abbreviation
 better = betterEvaluationFunction
