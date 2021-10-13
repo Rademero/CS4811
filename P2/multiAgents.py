@@ -74,7 +74,48 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        if action == "Stop":
+            return -10;
+        # set a return value
+        total = successorGameState.getScore()
+        # new position of pacman in a pair
+        x, y = newPos
+        # old position of pacman in a pair
+        curX, curY = currentGameState.getPacmanPosition()
+
+        # See if can kill ghost, runs if he can't
+        i = 0
+        for ghost in newGhostStates:
+            gX, gY = newGhostStates[i].getPosition()
+            # get distance
+            Dist = abs(x - gX) + abs(y - gY)
+            # if check if they are scared
+            if newScaredTimes[i] < Dist + 5:
+                # run
+                if Dist < 2:
+                    return int(-500)
+            else:
+                # kill
+                total += 500
+            i += 1
+
+        # look for nearby food
+        if newFood[x][y]:
+            total += 200
+        else:
+            closest = 100;
+            # find the closest to pos
+            for food in newFood.asList():
+                Dist = abs(x - food[0]) + abs(y - food[1])
+                if Dist <= closest:
+                    closest = Dist
+            # is it worth going towrds
+            if (closest > 1):
+                total += 10 / (closest)
+            else:
+                total += 20
+
+        return total
 
 
 def scoreEvaluationFunction(currentGameState):
