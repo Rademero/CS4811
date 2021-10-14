@@ -300,57 +300,31 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         @author ajdenofr
         """
         "*** YOUR CODE HERE ***"
-#        val = float("-inf")
-#        action = []
-#        agent = 0
-#        actions = gameState.getLegalActions(agent)
-#        successors = [(action, gameState.generateSuccessor(agent, action)) for action in actions]
-#        for successor in successors:
-#            tmp = minimax(1, range(gameState.getNumAgents()), successor[1], self.depth, self.evaluationFunction)
-#
-#            if tmp > val:
-#                val = tmp
-#                action = successor[0]
-#        return action
+        return self.expectimax(0, Directions.STOP, gameState, self.depth)[0]
 
-        val = float("-inf")
-        # Pacman is 0th agent
-        successors = [(action, gameState.generateSuccessor(0, action)) for action in gameState.getLegalActions(0)]
-        for successor in successors:
-            tmp = self.expectimax(1, range(gameState.getNumAgents()), successor[1], self.depth, self.evaluationFunction)
-            if tmp > val:
-                val = tmp
-                action = successor[0]
-        return action
+    def expectimax(self, agent, action, state, depth):
 
-
-    def expectimax(self, agent, agentList, state, depth, evalFunc):
         # Terminal node, return evaluation function at node
         if state.isLose() or depth <= 0 or state.isWin():
-            return evalFunc(state)
+            return (action, self.evaluationFunction(state))
 
+        takenAction = action
         actions = state.getLegalActions(agent)
-        successors = [state.generateSuccessor(agent, action) for action in actions] 
+        successors = [(action, state.generateSuccessor(agent, action)) for action in actions] 
+        nextAgent = (agent+1) % state.getNumAgents()
 
-            
-        # Agent plays, max node
-        if agent == 0:
-            val = float('-inf')
-            for successor in successors:
-                val = max(self.expectimax(agentList[agent+1], agentList, successor, depth, evalFunc), val) 
+        # Player plays, max node    
+        val = float('-inf') if agent == 0 else 0
+        if agent is state.getNumAgents()-1: depth = depth-1
+        for successor in successors:
+            nextAction = successor[0]
+            nextState = successor[1]
+            newAct = self.expectimax(nextAgent, nextAction, nextState, depth)
+            if newAct[1] > val:
+                val = newAct[1]
+                takenAction = newAct[0]
 
-        # Adversary plays, chance/exp node
-        else:
-            val = 0
-            if agent == agentList[-1]:
-                agent = 0
-                values = [self.expectimax(agentList[agent], agentList, successor, depth-1, evalFunc) for successor in successors]
-                val = max(random.choice(values), val)
-            else:
-                values = [self.expectimax(agentList[agent+1], agentList, successor, depth, evalFunc) for successor in successors]
-                val = max(random.choice(values)/len(successors), val)
-
-        return val
+        return (takenAction, val)
 
 def betterEvaluationFunction(currentGameState):
     """
