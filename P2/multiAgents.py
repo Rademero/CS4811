@@ -242,8 +242,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             # getting max
         for action in actions:
             tmpSuc = (
-                action, self.alphaBeta(depth + 1, gameState.generateSuccessor(agentIndex - 1, action), agentIndex,
-                                       alpha, beta))
+                    action, self.alphaBeta(depth + 1, gameState.generateSuccessor(agentIndex - 1, action), agentIndex,
+                        alpha, beta))
             if tmpMax[1] <= tmpSuc[1]:
                 tmpMax = tmpSuc
             if alpha < tmpMax[1]:
@@ -263,9 +263,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         # getting min
         for action in actions:
             tempSuc = (action,
-                       self.alphaBeta(depth + 1, gameState.generateSuccessor(agentIndex - 1, action), agentIndex,
-                                      alpha,
-                                      beta))
+                    self.alphaBeta(depth + 1, gameState.generateSuccessor(agentIndex - 1, action), agentIndex,
+                        alpha,
+                        beta))
             if tmpMin[1] >= tempSuc[1]:
                 tmpMin = tempSuc
             if beta > tmpMin[1]:
@@ -296,10 +296,61 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
+
+        @author ajdenofr
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+#        val = float("-inf")
+#        action = []
+#        agent = 0
+#        actions = gameState.getLegalActions(agent)
+#        successors = [(action, gameState.generateSuccessor(agent, action)) for action in actions]
+#        for successor in successors:
+#            tmp = minimax(1, range(gameState.getNumAgents()), successor[1], self.depth, self.evaluationFunction)
+#
+#            if tmp > val:
+#                val = tmp
+#                action = successor[0]
+#        return action
 
+        val = float("-inf")
+        # Pacman is 0th agent
+        successors = [(action, gameState.generateSuccessor(0, action)) for action in gameState.getLegalActions(0)]
+        for successor in successors:
+            tmp = self.expectimax(1, range(gameState.getNumAgents()), successor[1], self.depth, self.evaluationFunction)
+            if tmp > val:
+                val = tmp
+                action = successor[0]
+        return action
+
+
+    def expectimax(self, agent, agentList, state, depth, evalFunc):
+        # Terminal node, return evaluation function at node
+        if state.isLose() or depth <= 0 or state.isWin():
+            return evalFunc(state)
+
+        actions = state.getLegalActions(agent)
+        successors = [state.generateSuccessor(agent, action) for action in actions] 
+
+            
+        # Agent plays, max node
+        if agent == 0:
+            val = float('-inf')
+            for successor in successors:
+                val = max(self.expectimax(agentList[agent+1], agentList, successor, depth, evalFunc), val) 
+
+        # Adversary plays, chance/exp node
+        else:
+            val = 0
+            if agent == agentList[-1]:
+                agent = 0
+                values = [self.expectimax(agentList[agent], agentList, successor, depth-1, evalFunc) for successor in successors]
+                val = max(random.choice(values), val)
+            else:
+                values = [self.expectimax(agentList[agent+1], agentList, successor, depth, evalFunc) for successor in successors]
+                val = max(random.choice(values)/len(successors), val)
+
+        return val
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -307,6 +358,8 @@ def betterEvaluationFunction(currentGameState):
     evaluation function (question 5).
 
     DESCRIPTION: <write something here so we know what you did>
+
+    @author ajdenofr
     """
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
