@@ -4,4 +4,8 @@ A repository for collaborative programming in MTU's Artificial Intelligence cour
 -------
 ## Links
 [Program 1](https://pages.mtu.edu/~lebrown/cs4811-f21/web/project1.html)
+
 [Program 2](https://pages.mtu.edu/~lebrown/cs4811-f21/web/project2.html)
+
+[Program 3](https://pages.mtu.edu/~lebrown/cs4811-f21/web/project3.html)
+
