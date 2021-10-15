@@ -300,44 +300,93 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         @author ajdenofr
         """
         "*** YOUR CODE HERE ***"
-        return self.expectimax(0, Directions.STOP, gameState, self.depth)[0]
+        val = float("-inf")
+        actions = gameState.getLegalActions(0)
+        successors = [(action, gameState.generateSuccessor(0, action)) for action in actions]
+        for successor in successors:
+            tmp = self.expectimax(1, successor[1], self.depth)
+            if tmp > val:
+                val = tmp
+                action = successor[0]
+        return action
 
-    def expectimax(self, agent, action, state, depth):
+    def expectimax(self, agent, state, depth):
 
         # Terminal node, return evaluation function at node
-        if state.isLose() or depth <= 0 or state.isWin():
-            return (action, self.evaluationFunction(state))
+        if state.isLose() or depth == 0 or state.isWin():
+            return self.evaluationFunction(state)
 
-        takenAction = action
         actions = state.getLegalActions(agent)
-        successors = [(action, state.generateSuccessor(agent, action)) for action in actions] 
+        successors = [state.generateSuccessor(agent, action) for action in actions] 
         nextAgent = (agent+1) % state.getNumAgents()
+        nextDepth = depth-1 if nextAgent == 0 else depth
 
-        # Player plays, max node    
-        val = float('-inf') if agent == 0 else 0
-        if agent is state.getNumAgents()-1: depth = depth-1
-        for successor in successors:
-            nextAction = successor[0]
-            nextState = successor[1]
-            newAct = self.expectimax(nextAgent, nextAction, nextState, depth)
-            if newAct[1] > val:
-                val = newAct[1]
-                takenAction = newAct[0]
+        # Player is moving, max node
+        if agent == 0:
+            val = float('-inf')
+            for successor in successors:
+                newVal = self.expectimax(nextAgent, successor, nextDepth)
+                if newVal > val:
+                    val = newVal
 
-        return (takenAction, val)
+        # Adversary is moving, exp/min node
+        else:
+            val = 0
+            for successor in successors:
+                val += (1.0*self.expectimax(nextAgent, successor, nextDepth))/len(successors)
+
+        return val
 
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION:
+
+    This heuristic is comprised of 5 things:
+    
+    The first is the current score of the game state
+    The second is the minimum distance to a food pellet
+    The third is the distance to the nearest bad ghost
+    The fourth is the distance to the nearest scared (edible) ghost
+    The fifth is the number of power pills left, AKA capsules
+
+    They're all sort of arbitrarily weighted, I just felt that the
+    primary goal of the game is to capture all food and maybe pellets,
+    but eating edible ghosts is also important because they give a lot
+    of points.
 
     @author ajdenofr
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # To avoid min() exception on distToFood lambda
+    if currentGameState.isLose(): return float("-inf")
+    elif currentGameState.isWin(): return float("inf")
 
+    # Position, score, capsules
+    x, y = currentGameState.getPacmanPosition()
+    total = currentGameState.getScore()
+    capsLeft = len(currentGameState.getCapsules())
+
+    # Food stuff
+    foodList = currentGameState.getFood().asList()
+    foodLeft = len(foodList)
+    distToFood = min(map(lambda z: manhattanDistance((x,y), z), foodList))
+     
+    # Spooky ghost stuff
+    scaredGhosts = badGhosts = list()
+    for ghost in currentGameState.getGhostStates():
+        dist = manhattanDistance((x, y), ghost.getPosition()) 
+        # Add ghosts to appropriate lists, do not care if not within edible range
+        if ghost.scaredTimer and ghost.scaredTimer < dist: scaredGhosts.append(dist)
+        else: badGhosts.append(dist)
+    distScaredGhost = min(scaredGhosts)
+    distBadGhost = min(badGhosts)
+
+
+    return (total - (distToFood) - (10*(1.0/(distBadGhost))) - (4*distScaredGhost)
+            - (10*capsLeft) - (5*foodLeft))
 
 # Abbreviation
 better = betterEvaluationFunction
