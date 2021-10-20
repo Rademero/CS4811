@@ -153,7 +153,7 @@ def findModel(sentence):
     model if one exists. Otherwise, returns False.
     """
     "*** BEGIN YOUR CODE HERE ***"
-
+    return pycoSAT(to_cnf(sentence)) if pycoSAT(to_cnf(sentence)) else False
     "*** END YOUR CODE HERE ***"
 
 
