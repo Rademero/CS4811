@@ -196,7 +196,7 @@ def atLeastOne(literals):
     True
     """
     "*** BEGIN YOUR CODE HERE ***"
-
+    return disjoin(literals)            
     "*** END YOUR CODE HERE ***"
 
 
@@ -210,7 +210,12 @@ def atMostOne(literals):
     the expressions in the list is true.
     """
     "*** BEGIN YOUR CODE HERE ***"
+    #disjoints = conjoin([disjoin(~combo[0], ~combo[1]) for combo in itertools.combinations(literals, 2)])
+    #x = conjoin(conjoin(literals), disjoints)
+    #print(x)
+    #return x
 
+    return conjoin([disjoin(~combo[0], ~combo[1]) for combo in itertools.combinations(literals, 2)])
     "*** END YOUR CODE HERE ***"
 
 
@@ -224,7 +229,8 @@ def exactlyOne(literals):
     the expressions in the list is true.
     """
     "*** BEGIN YOUR CODE HERE ***"
-
+    disjoint = [disjoin(~combo[0], ~combo[1]) for combo in itertools.combinations(literals, 2)]
+    # use XORs
     "*** END YOUR CODE HERE ***"
 
 
