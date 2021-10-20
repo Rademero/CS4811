@@ -91,7 +91,8 @@ def sentence1():
     (not A) or (not B) or C
     """
     "*** BEGIN YOUR CODE HERE ***"
-
+    A, B, C = [Expr(letter) for letter in ["A", "B", "C"]]
+    return conjoin(A | B, ~A % disjoin(~B, C), disjoin(~A, ~B, C))
     "*** END YOUR CODE HERE ***"
 
 
@@ -107,7 +108,12 @@ def sentence2():
     (not D) implies C
     """
     "*** BEGIN YOUR CODE HERE ***"
-
+    A, B, C, D = [Expr(letter) for letter in ["A", "B", "C", "D"]]
+    one = C % disjoin(B, D)
+    two = A >> conjoin(~B, ~D)
+    thr = ~conjoin(B, ~C) >> A
+    fr = ~D >> C
+    return conjoin(one, two, thr, fr)
     "*** END YOUR CODE HERE ***"
 
 
@@ -127,7 +133,15 @@ def sentence3():
     Pacman is born at time 0.
     """
     "*** BEGIN YOUR CODE HERE ***"
-
+    A = PropSymbolExpr("PacmanAlive", 0)
+    B = PropSymbolExpr("PacmanAlive", 1)
+    C = PropSymbolExpr("PacmanBorn", 0)
+    D = PropSymbolExpr("PacmanKilled", 0)
+    one = B % disjoin(conjoin(A, ~D),
+            conjoin(~A, C))
+    # sort of a Schrodinger's Pacman, heh
+    two = ~conjoin(A, C)
+    return conjoin(one, two, C)
     "*** END YOUR CODE HERE ***"
 
 
