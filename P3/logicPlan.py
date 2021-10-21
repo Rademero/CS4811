@@ -230,7 +230,7 @@ def exactlyOne(literals):
     """
     "*** BEGIN YOUR CODE HERE ***"
     disjoint = [disjoin(~combo[0], ~combo[1]) for combo in itertools.combinations(literals, 2)]
-    # use XORs
+    return conjoin(disjoin(literals), conjoin(disjoint))
     "*** END YOUR CODE HERE ***"
 
 
