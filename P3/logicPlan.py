@@ -431,17 +431,18 @@ def positionLogicPlan(problem):
     KB.append(PropSymbolExpr(pacman_str, x0, y0, 0))
     for t in range(50):
         # Pac can only be in one location at time=t
-        KB.append(exactlyOne([PropSymbolExpr(pacman_str, coords[0], coords[1], t) for coords in non_wall_coords]))
+        possiblePositions = exactlyOne([PropSymbolExpr(pacman_str, coords[0], coords[1], t) for coords in non_wall_coords])
+        KB.append(possiblePositions)
 
         # If Pac's at goal, return actions
-        KB.append(~PropSymbolExpr(pacman_str, xg, yg, t))
-        model = findModel(conjoin(KB))
-        if not model: return extractActionSequence(model, actions)
+        model = findModel(conjoin(conjoin(KB), PropSymbolExpr(pacman_str, xg, yg, t)))
+        if model: return extractActionSequence(model, actions)
         
         # Pac takes exactly one action at time=t
         KB.append(exactlyOne([PropSymbolExpr(x, t) for x in DIRECTIONS]))
-
-        KB.append(conjoin([pacmanSuccessorStateAxioms(x, y, t, walls) for x,y in non_wall_coords]))
+        
+        # Pac's next choices, t+1 for next timestep
+        KB.append(conjoin([pacmanSuccessorStateAxioms(x, y, t+1, walls) for x,y in non_wall_coords]))
     "*** END YOUR CODE HERE ***"
 
 
