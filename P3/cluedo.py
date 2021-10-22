@@ -55,7 +55,15 @@ class Cluedo:
 def deal(hand, cards):
     "Construct the CNF clauses for the given cards being in the specified hand"
     "*** YOUR CODE HERE ***"
-    return []
+    tmp = []
+    returnArray = []
+    tmp.append(Cluedo.getIdentifierFromIndicies(Cluedo.hands.index(hand), Cluedo.cards.index(cards[0])))
+    returnArray.append(tmp)
+    tmp[0] = Cluedo.getIdentifierFromIndicies(Cluedo.hands.index(hand), Cluedo.cards.index(cards[1]))
+    returnArray.append(tmp)
+    tmp[0] = Cluedo.getIdentifierFromIndicies(Cluedo.hands.index(hand), Cluedo.cards.index(cards[2]))
+    returnArray.append(tmp)
+    return returnArray
 
 
 # **************
@@ -67,7 +75,30 @@ def axiom_card_exists():
         'Each card is in at least one place'
     """
     "*** YOUR CODE HERE ***"
-    return []
+    retArray = []
+    tmpArray = []
+    for weapon in Cluedo.weapons:
+        for suspect in Cluedo.suspects:
+            tmpArray.append(Cluedo.getIdentifierFromNames(suspect, weapon))
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, weapon))
+        retArray.append(tmpArray)
+        tmpArray = []
+
+    for room in Cluedo.rooms:
+        for suspect in Cluedo.suspects:
+            tmpArray.append(Cluedo.getIdentifierFromNames(suspect, room))
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, room))
+        retArray.append(tmpArray)
+        tmpArray = []
+
+    for sus in Cluedo.suspects:
+        for suspect in Cluedo.suspects:
+            tmpArray.append(Cluedo.getIdentifierFromNames(suspect, sus))
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, sus))
+        retArray.append(tmpArray)
+        tmpArray = []
+
+    return retArray
 
 
 # **************
@@ -79,7 +110,26 @@ def axiom_card_unique():
         'If a card is in one place, it can not be in another place'
     """
     "*** YOUR CODE HERE ***"
-    return []
+    retArray = []
+    tmpArray = []
+    for player in Cluedo.suspects:
+        for weapon in Cluedo.weapons:
+            tmpArray.append(Cluedo.getIdentifierFromNames(player, weapon))
+            tmpArray.append(-1 * Cluedo.getIdentifierFromNames(player, weapon))
+            retArray.append(tmpArray)
+            tmpArray = []
+        for room in Cluedo.rooms:
+            tmpArray.append(Cluedo.getIdentifierFromNames(player, room))
+            tmpArray.append(-1 * Cluedo.getIdentifierFromNames(player, room))
+            retArray.append(tmpArray)
+            tmpArray = []
+        for suspect in Cluedo.suspects:
+            tmpArray.append(Cluedo.getIdentifierFromNames(player, suspect))
+            tmpArray.append(-1 * Cluedo.getIdentifierFromNames(player, suspect))
+            retArray.append(tmpArray)
+            tmpArray = []
+
+    return retArray
 
 
 # **************
@@ -91,7 +141,21 @@ def axiom_casefile_exists():
         'At least one card of each category is in the case file'
     """
     "*** YOUR CODE HERE ***"
-    return []
+    tmpArray = []
+    retArray = []
+    for weapon in Cluedo.weapons:
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, weapon))
+    retArray.append(tmpArray)
+    tmpArray = []
+    for room in Cluedo.rooms:
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, room))
+    retArray.append(tmpArray)
+    tmpArray = []
+    for sus in Cluedo.suspects:
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, sus))
+    retArray.append(tmpArray)
+
+    return retArray
 
 
 # **************
@@ -103,7 +167,25 @@ def axiom_casefile_unique():
         'No two cards in each category are in the case file'
     """
     "*** YOUR CODE HERE ***"
-    return []
+    tmpArray = []
+    retArray = []
+    for weapon in Cluedo.weapons:
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, weapon))
+        tmpArray.append(-1 * Cluedo.getIdentifierFromNames(Cluedo.casefile, weapon))
+        retArray.append(tmpArray)
+        tmpArray = []
+    for room in Cluedo.rooms:
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, room))
+        tmpArray.append(-1 * Cluedo.getIdentifierFromNames(Cluedo.casefile, room))
+        retArray.append(tmpArray)
+        tmpArray = []
+    for suspect in Cluedo.suspects:
+        tmpArray.append(Cluedo.getIdentifierFromNames(Cluedo.casefile, suspect))
+        tmpArray.append(-1 * Cluedo.getIdentifierFromNames(Cluedo.casefile, suspect))
+        retArray.append(tmpArray)
+        tmpArray = []
+
+    return retArray
 
 
 # **************
@@ -112,7 +194,40 @@ def axiom_casefile_unique():
 def suggest(suggester, card1, card2, card3, refuter, cardShown):
     "Construct the CNF clauses representing facts and/or clauses learned from a suggestion"
     "*** YOUR CODE HERE ***"
-    return []
+    tmp = []
+    tmp2 = []
+    array = []
+    if cardShown != None and refuter != None:
+        tmp.append(Cluedo.getIdentifierFromNames(refuter, cardShown))
+        array.append(tmp)
+    elif cardShown == None and refuter != None:
+        for i in range(Cluedo.hands.index(suggester) + 1, Cluedo.hands.index(refuter)):
+            tmp.append(-1 * Cluedo.getIdentifierFromIndicies(i, Cluedo.cards.index(card1)))
+            array.append(tmp)
+            tmp = []
+            tmp.append(-1 * Cluedo.getIdentifierFromIndicies(i, Cluedo.cards.index(card2)))
+            array.append(tmp)
+            tmp = []
+            tmp.append(-1 * Cluedo.getIdentifierFromIndicies(i, Cluedo.cards.index(card3)))
+            array.append(tmp)
+            tmp = []
+        tmp2.append(1 * Cluedo.getIdentifierFromIndicies(Cluedo.cards.index(refuter), Cluedo.cards.index(card1)))
+        tmp2.append(1 * Cluedo.getIdentifierFromIndicies(Cluedo.cards.index(refuter), Cluedo.cards.index(card2)))
+        tmp2.append(1 * Cluedo.getIdentifierFromIndicies(Cluedo.cards.index(refuter), Cluedo.cards.index(card3)))
+        array.append(tmp2)
+    else:
+        for suspect in Cluedo.suspects:
+            if suspect != suggester:
+                tmp.append(-1 * Cluedo.getIdentifierFromNames(suspect, card1))
+                array.append(tmp)
+                tmp = []
+                tmp.append(-1 * Cluedo.getIdentifierFromNames(suspect, card2))
+                array.append(tmp)
+                tmp = []
+                tmp.append(-1 * Cluedo.getIdentifierFromNames(suspect, card3))
+                array.append(tmp)
+                tmp = []
+    return array
 
 
 # **************
@@ -121,5 +236,32 @@ def suggest(suggester, card1, card2, card3, refuter, cardShown):
 def accuse(accuser, card1, card2, card3, correct):
     "Construct the CNF clauses representing facts and/or clauses learned from an accusation"
     "*** YOUR CODE HERE ***"
-    return []
+    tmpArray = []
+    returnArray = []
+    if correct:
+        tmpArray.append(Cluedo.getIdentifierFromNames("cf", card1))
+        returnArray.append(tmpArray)
+        tmpArray = []
+        tmpArray.append(Cluedo.getIdentifierFromNames("cf", card2))
+        returnArray.append(tmpArray)
+        tmpArray = []
+        tmpArray.append(Cluedo.getIdentifierFromNames("cf", card3))
+        returnArray.append(tmpArray)
+        tmpArray = []
+    else:
+        tmpArray.append(Cluedo.getIdentifierFromNames(accuser, card1))
+        returnArray.append(tmpArray)
+        tmpArray = []
+        tmpArray.append(Cluedo.getIdentifierFromNames(accuser, card2))
+        returnArray.append(tmpArray)
+        tmpArray = []
+        tmpArray.append(Cluedo.getIdentifierFromNames(accuser, card3))
+        returnArray.append(tmpArray)
+        tmpArray = []
+
+        tmpArray.append(-1 * Cluedo.getIdentifierFromNames("cf", card1))
+        tmpArray.append(-1 * Cluedo.getIdentifierFromNames("cf", card2))
+        tmpArray.append(-1 * Cluedo.getIdentifierFromNames("cf", card3))
+        returnArray.append(tmpArray)
+    return returnArray
 
