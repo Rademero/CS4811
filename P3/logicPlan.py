@@ -347,8 +347,8 @@ def pacphysics_axioms(t, all_coords, non_outer_wall_coords):
     "*** BEGIN YOUR CODE HERE ***"
     pacmanCoords = list()
     for coords in all_coords:
-        wallAt = PropSymbolExpr("WALL", coords[0], coords[1])
-        pacmanAt = PropSymbolExpr("P", coords[0], coords[1], t)
+        wallAt = PropSymbolExpr(wall_str, coords[0], coords[1])
+        pacmanAt = PropSymbolExpr(pacman_str, coords[0], coords[1], t)
         if coords in non_outer_wall_coords: pacmanCoords.append(pacmanAt)
         pacphysics_sentences.append(wallAt >> ~pacmanAt)
     # pacphysics_sentences.append(exactlyOne(pacmanCoords))
@@ -387,7 +387,20 @@ def check_location_satisfiability(x1_y1, x0_y0, action0, action1, problem):
     KB.append(conjoin(map_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
+    # KB additions for t=0
+    KB.append(PropSymbolExpr(pacman_str, x0_y0[0], x0_y0[1], 0))
+    KB.append(pacphysics_axioms(0, all_coords, non_outer_wall_coords))
+    KB.append(PropSymbolExpr(action0, 0))
+    KB.append(conjoin(allLegalSuccessorAxioms(1, walls_grid, non_outer_wall_coords)))
     
+    # KB additions for t=1
+    KB.append(pacphysics_axioms(1, all_coords, non_outer_wall_coords))
+    KB.append(PropSymbolExpr(action1, 1))
+
+    superposPac = PropSymbolExpr(pacman_str, x1_y1[0], x1_y1[1], 1)
+    model1 = findModel(conjoin(conjoin(KB), ~superposPac))
+    model2 = findModel(conjoin(conjoin(KB), superposPac))
+    return (model1, model2)
     "*** END YOUR CODE HERE ***"
 
 
