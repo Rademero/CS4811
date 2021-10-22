@@ -345,7 +345,16 @@ def pacphysics_axioms(t, all_coords, non_outer_wall_coords):
     pacphysics_sentences = []
 
     "*** BEGIN YOUR CODE HERE ***"
-
+    pacmanCoords = list()
+    for coords in all_coords:
+        wallAt = PropSymbolExpr("WallAt", coords[0], coords[1])
+        pacmanAt = PropSymbolExpr("PacmanAt", coords[0], coords[1], t)
+        pacmanCoords.append(pacmanAt)
+        pacphysics_sentences.append(wallAt >> ~pacmanAt)
+    pacphysics_sentences.append(exactlyOne(pacmanCoords))
+    possibleActions = [PropSymbolExpr(x, t) for x in DIRECTIONS]
+    pacphysics_sentences.append(exactlyOne(possibleActions))
+    print(conjoin(pacphysics_sentences))
     "*** END YOUR CODE HERE ***"
 
     return conjoin(pacphysics_sentences)
