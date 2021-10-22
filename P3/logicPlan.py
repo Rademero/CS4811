@@ -351,7 +351,6 @@ def pacphysics_axioms(t, all_coords, non_outer_wall_coords):
         pacmanAt = PropSymbolExpr(pacman_str, coords[0], coords[1], t)
         if coords in non_outer_wall_coords: pacmanCoords.append(pacmanAt)
         pacphysics_sentences.append(wallAt >> ~pacmanAt)
-    # pacphysics_sentences.append(exactlyOne(pacmanCoords))
     possibleActions = [PropSymbolExpr(x, t) for x in DIRECTIONS]
     pacphysics_sentences.append(exactlyOne(possibleActions))
     pacphysics_sentences.append(exactlyOne(pacmanCoords))
@@ -428,7 +427,21 @@ def positionLogicPlan(problem):
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    
+    # Init position
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, 0))
+    for t in range(50):
+        # Pac can only be in one location at time=t
+        KB.append(exactlyOne([PropSymbolExpr(pacman_str, coords[0], coords[1], t) for coords in non_wall_coords]))
+
+        # If Pac's at goal, return actions
+        KB.append(~PropSymbolExpr(pacman_str, xg, yg, t))
+        model = findModel(conjoin(KB))
+        if not model: return extractActionSequence(model, actions)
+        
+        # Pac takes exactly one action at time=t
+        KB.append(exactlyOne([PropSymbolExpr(x, t) for x in DIRECTIONS]))
+
+        KB.append(conjoin([pacmanSuccessorStateAxioms(x, y, t, walls) for x,y in non_wall_coords]))
     "*** END YOUR CODE HERE ***"
 
 
