@@ -377,7 +377,10 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # For the max number of particles per position, append a particle in that position
+        for x in range(int(self.numParticles/len(self.legalPositions))):
+            for part in self.legalPositions:
+                self.particles.append(part)
 
 
     # **************
@@ -398,7 +401,18 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        dist = DiscreteDistribution()
+        # Assign observation probability to each particle in distribution
+        for part in self.particles:
+            dist[part] += self.getObservationProb(observation, gameState.getPacmanPosition(), part, self.getJailPosition())
+        dist.normalize()
+
+        # Determine if all particles have zero weight
+        # If so, initializeUniformly, if not, reassign particles to new samples
+        if dist.total() == 0:
+            self.initializeUniformly(gameState)
+            dist = self.getBeliefDistribution() 
+        else: self.particles = [ dist.sample() for part in self.particles ]
 
 
     # **************
@@ -412,8 +426,10 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-
+        # For each current particle, reassign to a sample of the position distribution
+        # In other words, estimate the next state of the particles
+        self.particles = [ self.getPositionDistribution(gameState, part).sample() for part in self.particles ]
+        
 
     # **************
     #  Question 5
@@ -429,8 +445,12 @@ class ParticleFilter(InferenceModule):
         This function should return a normalized distribution.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-
+        dist = DiscreteDistribution()
+        # Add 1 to all particles in dist, then normalize
+        for part in self.particles:
+            dist[part] += 1
+        dist.normalize()
+        return dist
 
 class JointParticleFilter(ParticleFilter):
     """
