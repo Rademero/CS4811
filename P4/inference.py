@@ -80,7 +80,10 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        sum = self.total()
+        if sum != 0:
+            for key in self:
+                self[key] = float(self[key]) / sum
 
     # **************
     #  Question 0 
@@ -109,7 +112,13 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        copy = self.copy()
+        copy.normalize()
+        sample, sum = random.random(), 0
+        for key, value in copy.items():
+            sum += value
+            if sample < sum:
+                return key
 
 
 class InferenceModule:
@@ -184,7 +193,13 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        if ghostPosition == jailPosition:
+            return 1.0 if noisyDistance is None else 0.0
+        elif noisyDistance is None:
+            return 1.0 if ghostPosition == jailPosition else 0.0
+        else:
+            dist = manhattanDistance(ghostPosition, pacmanPosition)
+            return busters.getObservationProbability(noisyDistance, dist)
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
@@ -298,8 +313,11 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-
+        self.beliefs.normalize()
+        pacmanPosition, jailPosition = gameState.getPacmanPosition(), self.getJailPosition()
+        for ghostPosition in self.allPositions:
+            prob = self.getObservationProb(observation, pacmanPosition, ghostPosition, jailPosition)
+            self.beliefs[ghostPosition] *= prob
         self.beliefs.normalize()
 
 
@@ -318,7 +336,15 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        priorDist = self.beliefs.copy()
+        self.beliefs.clear()
+        for oldPosition in self.allPositions:
+            if priorDist[oldPosition] == 0:
+                continue
+            newPosDist = self.getPositionDistribution(gameState, oldPosition)
+            for pos in self.allPositions:
+                self.beliefs[pos] += newPosDist[pos] * priorDist[oldPosition]
+        self.beliefs.normalize()
 
     def getBeliefDistribution(self):
         return self.beliefs
