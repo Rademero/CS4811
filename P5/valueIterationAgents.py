@@ -174,7 +174,22 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
         Question 4
         """
         "*** YOUR CODE HERE ***"
-
+        states = self.mdp.getStates()
+        size = len(states)
+        updatedVal = util.Counter()
+        for i in range(self.iterations):
+            j = i % size;
+            if self.mdp.isTerminal(states[j]):
+                continue
+            qval2 = -float("inf")
+            for action in self.mdp.getPossibleActions(states[j]):
+                qval = self.computeQValueFromValues(states[j], action)
+                if qval > qval2:
+                    qval2 = qval
+            if qval2 == -float("inf"):
+                qval2 = 0
+            updatedVal[states[j]] = qval2
+            self.values = updatedVal
 
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
@@ -202,4 +217,34 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         Question 5 - Extra Credit
         """
         "*** YOUR CODE HERE ***"
+        predecessors = {state: set() for state in self.mdp.getStates()}
+        for origState in self.mdp.getStates():
+            for action in self.mdp.getPossibleActions(origState):
+                for destState, prob in self.mdp.getTransitionStatesAndProbs(origState, action):
+                    if prob != 0:
+                        predecessors[destState].add(origState)
+        minHeap = util.PriorityQueue()
+        for state in self.mdp.getStates():
+            if self.mdp.isTerminal(state):
+                continue
+            maxQvalue = max([self.getQValue(state, action) for action in self.mdp.getPossibleActions(state)])
+            diff = abs(maxQvalue - self.values[state])
+            minHeap.push(item=state, priority=-diff)
+        #
+        for k in range(self.iterations):
+            if minHeap.isEmpty():
+                return
+            state = minHeap.pop()
+            if self.mdp.isTerminal(state):
+                continue
 
+            for action in self.mdp.getPossibleActions(state):
+                self.qValues[(state, action)] = self.getQValue(state, action)
+            self.values[state] = max([self.qValues[(state, action)] for action in self.mdp.getPossibleActions(state)])
+
+            for predecessor in predecessors[state]:
+                maxQvalue = max(
+                    [self.getQValue(predecessor, action) for action in self.mdp.getPossibleActions(predecessor)])
+                diff = abs(maxQvalue - self.values[predecessor])
+                if diff > self.theta:
+                    minHeap.update(item=predecessor, priority=-diff)
