@@ -41,14 +41,26 @@ class PerceptronModel(object):
         Returns: 1 or -1
         """
         "*** YOUR CODE HERE ***"
-        
+        if nn.as_scalar(self.run(x)) >= 0.0:
+            return 1
+        else:
+            return -1
 
     def train(self, dataset):
         """
         Train the perceptron until convergence.
         """
         "*** YOUR CODE HERE ***"
-        
+        batch_size = 1
+        changed = False
+        while True:
+            changed = False
+            for x, y in dataset.iterate_once(batch_size):
+                if self.get_prediction(x) != nn.as_scalar(y):
+                    changed = True
+                    nn.Parameter.update(self.w, x, nn.as_scalar(y))
+            if changed == False:
+                break
 
 # **************
 #  Question 2 
@@ -62,7 +74,12 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-        
+        self.weight1 = nn.Parameter(1, 50)
+        self.weight2 = nn.Parameter(50, 1)
+        self.bias1 = nn.Parameter(1, 50)
+        self.bias2 = nn.Parameter(1, 1)
+        self.learning_rate = .09
+        self.batch_size = 200
 
     def run(self, x):
         """
@@ -74,7 +91,12 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-        
+        features1 = nn.Linear(x, self.weight1)
+        n = nn.AddBias(features1, self.bias1)
+        b1 = nn.ReLU(n)
+        features2 = nn.Linear(b1, self.weight2)
+        b2 = nn.AddBias(features2, self.bias2)
+        return b2
 
     def get_loss(self, x, y):
         """
@@ -95,7 +117,19 @@ class RegressionModel(object):
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
-        
+        batch_size = self.batch_size
+        inv_learning = -1 * self.learning_rate
+        changed = False
+        while True:
+            changed = False
+            for x, y in dataset.iterate_once(batch_size):
+                grad = nn.gradients(self.get_loss(x, y), [self.weight1, self.weight2, self.bias1, self.bias2])
+                self.weight1.update(grad[0], inv_learning)
+                self.weight2.update(grad[1], inv_learning)
+                self.bias1.update(grad[2], inv_learning)
+                self.bias2.update(grad[3], inv_learning)
+            if nn.as_scalar(self.get_loss(x, y)) < 0.02:
+                break
 
 
 # **************
