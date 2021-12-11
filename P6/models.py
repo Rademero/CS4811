@@ -201,11 +201,11 @@ class DigitClassificationModel(object):
 class LanguageIDModel(object):
     """
     A model for language identification at a single-word granularity.
-
     (See RegressionModel for more information about the APIs of different
     methods here. We recommend that you implement the RegressionModel before
     working on this part of the project.)
     """
+
     def __init__(self):
         # Our dataset contains words from five different languages, and the
         # combined alphabets of the five languages contain a total of 47 unique
@@ -216,15 +216,19 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-        
+        self.dim = 5
+        self.batchSize = 2
+        self.learnRate = -0.005
+        self.hiddenDim = 400
+        self.weight = nn.Parameter(self.num_chars, self.hiddenDim)
+        self.hiddenWeight = nn.Parameter(self.hiddenDim, self.hiddenDim)
+        self.finalWeight = nn.Parameter(self.hiddenDim, self.dim)
 
     def run(self, xs):
         """
         Runs the model for a batch of examples.
-
         Although words have different lengths, our data processing guarantees
         that within a single batch, all words will be of the same length (L).
-
         Here `xs` will be a list of length L. Each element of `xs` will be a
         node with shape (batch_size x self.num_chars), where every row in the
         array is a one-hot vector encoding of a character. For example, if we
@@ -233,13 +237,11 @@ class LanguageIDModel(object):
         index 7 reflects the fact that "cat" is the last word in the batch, and
         the index 0 reflects the fact that the letter "a" is the inital (0th)
         letter of our combined alphabet for this task.
-
         Your model should use a Recurrent Neural Network to summarize the list
         `xs` into a single node of shape (batch_size x hidden_size), for your
         choice of hidden_size. It should then calculate a node of shape
         (batch_size x 5) containing scores, where higher scores correspond to
         greater probability of the word originating from a particular language.
-
         Inputs:
             xs: a list with L elements (one per character), where each element
                 is a node with shape (batch_size x self.num_chars)
@@ -248,16 +250,18 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
-        
+        h = nn.Linear(xs[0], self.weight)
+        z = nn.Linear(xs[0], self.weight)
+        for i, x in enumerate(xs[1:]):
+            z = nn.Add(nn.Linear(x, self.weight), nn.Linear(z, self.hiddenWeight))
+        return nn.Linear(z, self.finalWeight)
 
     def get_loss(self, xs, y):
         """
         Computes the loss for a batch of examples.
-
         The correct labels `y` are represented as a node with shape
         (batch_size x 5). Each row is a one-hot vector encoding the correct
         language.
-
         Inputs:
             xs: a list with L elements (one per character), where each element
                 is a node with shape (batch_size x self.num_chars)
@@ -265,14 +269,19 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-        
-
+        return nn.SoftmaxLoss(self.run(xs), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
-        
-
-        
+        while dataset.get_validation_accuracy() <= 0.80:
+            for x, y in dataset.iterate_once(self.batchSize):
+                loss = self.get_loss(x, y)
+                grad = nn.gradients(loss, [self.weight, self.hiddenWeight, self.finalWeight])
+                self.weight.update(grad[0], self.learnRate)
+                self.hiddenWeight.update(grad[1], self.learnRate)
+                self.finalWeight.update(grad[2], self.learnRate)
+            if dataset.get_validation_accuracy() >= 0.80:
+                break
