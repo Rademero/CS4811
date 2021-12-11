@@ -32,7 +32,7 @@ class PerceptronModel(object):
         Returns: a node containing a single number (the score)
         """
         "*** YOUR CODE HERE ***"
-        
+        return nn.DotProduct(self.w, x)
 
     def get_prediction(self, x):
         """
@@ -109,7 +109,7 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-        
+        return nn.SquareLoss(self.run(x), y)
 
 
     def train(self, dataset):
