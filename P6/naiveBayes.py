@@ -69,7 +69,71 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
         #  Question 0
         # ************
         "*** YOUR CODE HERE ***"
+
+        # Accuracy and K values are ints/float, priors and conditional probs are Counters
+        bestAccuracy = bestK = 0
+        bestPrior = bestCondP = None
+
+        # Overarching prior, conditional prob, and count Counter objects
+        mainP = util.Counter()
+        mainCondP = util.Counter()
+        mainCount = util.Counter()
+
+        # Train those models! Pump those numbers! 
+        for i in range(len(trainingData)):
+            d = trainingData[i]
+            l = trainingLabels[i]
+            mainP[l] += 1
+            for f, v in d.items():
+                mainCount[(f, l)] += 1 
+                if v > 0: mainCondP[(f, l)] += 1
         
+        # Smoothing of parameter estimates
+        for kval in kgrid:
+
+            # Init prior, conditional prob, and count for each k val
+            newPrior = util.Counter()
+            newCondP = util.Counter()
+            newCount = util.Counter()
+            for k, v in mainP.items(): newPrior[k] += v
+            for k, v in mainCount.items(): newCount[k] += v
+            for k, v in mainCondP.items(): newCondP[k] += v
+
+            # Smooth conditional prob
+            for l in self.legalLabels:
+                for f in self.features:
+                    newCondP[(f, l)] += kval
+                    # 0 and 1 values are already smooth
+                    newCount[(f, l)] += kval*2
+
+            # Normalization
+            newPrior.normalize()
+            for j, c in newCondP.items(): newCondP[j] = float(c/newCount[j])
+        
+            # Set priors and conditional probs for next k value
+            self.prior = newPrior
+            self.conditionalProb = newCondP
+        
+            # Get performance of k-value on validation data
+            predictions = self.classify(validationData)
+            accuracies = list()
+            for i in range(len(validationLabels)): accuracies.append(predictions[i] == validationLabels[i])
+            accuracy = accuracies.count(True)
+        
+            print(f"Performance when k={kval}: {100*float(accuracy/len(validationLabels))}% correct")
+        
+            if accuracy > bestAccuracy:
+                bestAccuracy = accuracy
+                bestPrior = newPrior
+                bestCondP = newCondP
+                bestK = kval
+       
+        print(f"Best value of k: {bestK}")
+        self.prior = bestPrior
+        self.conditionalProb = bestCondP
+
+        # Do I get brownie points for using provided methods
+        self.setSmoothing(bestK)
 
 
     def classify(self, testData):
@@ -100,7 +164,10 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
         #  Question 0
         # ************
         "*** YOUR CODE HERE ***"
-        
-
+        for l in self.legalLabels:
+            logJoint[l] = math.log(self.prior[l])
+            for f, v in datum.items():
+                if v > 0: logJoint[l] += math.log(self.conditionalProb[f, l])
+                else: logJoint[l] += math.log(1-self.conditionalProb[f, l])
         return logJoint
 
