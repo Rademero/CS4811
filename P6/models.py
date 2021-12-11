@@ -250,7 +250,6 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
-        h = nn.Linear(xs[0], self.weight)
         z = nn.Linear(xs[0], self.weight)
         for i, x in enumerate(xs[1:]):
             z = nn.Add(nn.Linear(x, self.weight), nn.Linear(z, self.hiddenWeight))
